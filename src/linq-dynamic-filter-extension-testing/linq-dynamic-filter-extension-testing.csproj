@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>linq_dynamic_filter_extension_testing</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\linq-dynamic-filter-extension\linq-dynamic-filter-extension.csproj" />
+  </ItemGroup>
+
+</Project>
