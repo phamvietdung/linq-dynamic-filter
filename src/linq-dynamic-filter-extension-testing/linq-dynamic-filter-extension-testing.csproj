@@ -10,4 +10,10 @@
     <ProjectReference Include="..\linq-dynamic-filter-extension\linq-dynamic-filter-extension.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="data.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -36,3 +36,4 @@ F:\Duvie_work_space\nuget\linq-dynamic-filter\src\linq-dynamic-filter-extension-
 F:\Duvie_work_space\nuget\linq-dynamic-filter\src\linq-dynamic-filter-extension-testing\obj\Debug\net5.0\ref\linq-dynamic-filter-extension-testing.dll
 F:\Duvie_work_space\nuget\linq-dynamic-filter\src\linq-dynamic-filter-extension-testing\obj\Debug\net5.0\linq-dynamic-filter-extension-testing.pdb
 F:\Duvie_work_space\nuget\linq-dynamic-filter\src\linq-dynamic-filter-extension-testing\obj\Debug\net5.0\linq-dynamic-filter-extension-testing.genruntimeconfig.cache
+F:\Duvie_work_space\nuget\linq-dynamic-filter\src\linq-dynamic-filter-extension-testing\bin\Debug\net5.0\data.json

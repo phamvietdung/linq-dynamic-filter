@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using linq_dynamic_filter_extension;
@@ -11,18 +12,38 @@ namespace linq_dynamic_filter_extension_testing
 
         public static void Main(string[] args)
         {
-            String dataSource = "[{\"Name\":\"Donna Perry\",\"Age\":49,\"DOB\":\"Wednesday, August 26, 2015 4:26 PM\",\"Address\":\"Ut ullamco in consequat mollit deserunt adipisicing. Ea ex reprehenderit ut do. Sunt irure consequat voluptate deserunt non tempor veniam labore. Ad ut laboris velit cupidatat laborum minim ut elit est proident pariatur sunt labore. Velit qui pariatur ipsum labore aliqua laboris culpa aliquip nostrud nostrud exercitation ullamco occaecat.\"},{\"Name\":\"Gilliam Cash\",\"Age\":90,\"DOB\":\"Sunday, September 24, 2017 12:23 AM\",\"Address\":\"Adipisicing cupidatat fugiat labore esse enim id sint quis laborum qui anim proident duis dolore. Proident cillum commodo proident irure quis do tempor nulla proident officia nisi ut. Mollit ex dolor duis cupidatat fugiat mollit amet do. Ea consectetur dolore nisi nulla reprehenderit enim ullamco magna aliquip officia adipisicing non. Officia ea elit id velit.\"},{\"Name\":\"Woodard Coffey\",\"Age\":71,\"DOB\":\"Tuesday, January 22, 2019 9:03 AM\",\"Address\":\"Ipsum labore occaecat aliqua eu sint proident ex elit veniam fugiat sit ex ad. In fugiat nisi mollit consequat do est. Laboris aliquip aute aliqua velit velit velit veniam irure laborum nulla irure. Voluptate id amet nisi commodo amet reprehenderit nisi esse nostrud aute ea ullamco.\"},{\"Name\":\"Lana Ramos\",\"Age\":76,\"DOB\":\"Friday, August 10, 2018 1:57 AM\",\"Address\":\"Voluptate Lorem nostrud magna fugiat deserunt duis officia cillum voluptate. Sunt dolore ad deserunt consectetur. Laborum officia irure sit non adipisicing qui ea irure eiusmod. Cupidatat ad anim adipisicing dolor id enim consequat nostrud in excepteur excepteur nulla. Nulla officia anim tempor excepteur quis ad deserunt sit.\"},{\"Name\":\"Becker Reid\",\"Age\":33,\"DOB\":\"Monday, March 30, 2015 12:27 AM\",\"Address\":\"Ipsum elit commodo tempor dolor pariatur deserunt laboris ad elit ex sunt id nisi non. Sunt id adipisicing officia irure nisi. Reprehenderit dolor enim ut et reprehenderit proident excepteur cupidatat sint cillum.\"}]";
+            String file_path = AppDomain.CurrentDomain.BaseDirectory + "data.json";
+
+            if (!File.Exists(file_path))
+            {
+                throw new Exception("data.json not exists!");
+            }
+
+            String dataSource = "";//= JsonSerializer.Serialize<List<Person>>(new List<Person>(){});
+
+            using (StreamReader sr = File.OpenText(file_path))
+            {
+                string l;
+                while ((l = sr.ReadLine()) != null)
+                {
+                    dataSource += l.Trim();
+                }
+                
+            }
 
             /// <summary>
             /// String filter_equal = "[{\"Type\" : \"text\",\"Key\" : \"Name\",\"Operator\" : \"equal\",\"Value\" : \"Woodard Coffey\"}]";
             /// </summary>
+
+            #region filter text
+
             String filter_equal = JsonSerializer.Serialize<List<Filter>>(new List<Filter>() {
                 new Filter()
                 {
                     Type = FieldTypeConst.text,
                     Key = "Name",
                     Operator = CompareTypeConst.equal,
-                    Value = "Woodard Coffey"
+                    Value = "Mann Newton"
                 }
             });
 
@@ -32,7 +53,7 @@ namespace linq_dynamic_filter_extension_testing
                     Type = FieldTypeConst.text,
                     Key = "Name",
                     Operator = CompareTypeConst.notEqual,
-                    Value = "Woodard Coffey"
+                    Value = "Mann Newton"
                 }
             });
 
@@ -51,6 +72,165 @@ namespace linq_dynamic_filter_extension_testing
 
             String filter_not_support_case = "[{\"Type\" : \"text\",\"Key\" : \"Name\",\"Operator\" : \"lessThan\",\"Value\" : \"a\"}]";
 
+            #endregion
+
+            #region filter number
+
+            String number_filter_not_equal = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.integerNumber,
+                    Operator = CompareTypeConst.equal,
+                    Key = "Age",
+                    Value = "49"
+                },
+                new Filter()
+                {
+                    Type = FieldTypeConst.integerNumber,
+                    Operator = CompareTypeConst.greaterThanOrEqual,
+                    Key = "Age",
+                    Value = "49"
+                }
+            });
+
+            String number_filter_range = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.integerNumber,
+                    Operator = CompareTypeConst.greaterThanOrEqual,
+                    Key = "Age",
+                    Value = "36"
+                },
+                new Filter()
+                {
+                    Type = FieldTypeConst.integerNumber,
+                    Operator = CompareTypeConst.lessThanOrEqual,
+                    Key = "Age",
+                    Value = "55"
+                }
+            });
+
+            string number_decimal_filter_equal = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.decimalNumber,
+                    Operator = CompareTypeConst.equal,
+                    Key = "Amount",
+                    Value = "81236.1418736223"
+                },
+                new Filter()
+                {
+                    Type = FieldTypeConst.decimalNumber,
+                    Operator = CompareTypeConst.notEqual,
+                    Key = "Amount",
+                    Value = "427368.6921921577"
+                }
+            });
+
+            string number_decimal_filter_range = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.decimalNumber,
+                    Operator = CompareTypeConst.greaterThanOrEqual,
+                    Key = "Amount",
+                    Value = "271421.5981646036"
+                },
+                new Filter()
+                {
+                    Type = FieldTypeConst.decimalNumber,
+                    Operator = CompareTypeConst.lessThanOrEqual,
+                    Key = "Amount",
+                    Value = "729774.7005211266"
+                }
+            });
+
+            string number_decimal_filter_range2 = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.decimalNumber,
+                    Operator = CompareTypeConst.fromTo,
+                    Key = "Amount",
+                    Start = "419538.2190820557",
+                    End ="988957.9193887961"
+                }
+            });
+
+            string number_decimal_filter_range_with_equal = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.decimalNumber,
+                    Operator = CompareTypeConst.fromToWithEqual,
+                    Key = "Amount",
+                    Start = "419538.2190820557",
+                    End ="988957.9193887961"
+                }
+            });
+
+            #endregion
+
+            #region datetime
+
+            String datetime_filter_equal = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.date,
+                    Operator = CompareTypeConst.equal,
+                    Key = "DOB",
+                    Value = "2001-04-15T20:03:37+00:00" //new DateTime(2001,4,15,20,3,37).ToString()
+                }
+            });
+
+            String datetime_filter_range = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.date,
+                    Operator = CompareTypeConst.greaterThan,
+                    Key = "DOB",
+                    Value = "2001-04-15T20:03:37+00:00" //new DateTime(2001,4,15,20,3,37).ToString()
+                },
+                new Filter()
+                {
+                    Type = FieldTypeConst.date,
+                    Operator = CompareTypeConst.lessThanOrEqual,
+                    Key = "DOB",
+                    Value = "2017-09-09T04:41:07+00:00" //new DateTime(2001,4,15,20,3,37).ToString()
+                }
+            });
+
+            string datetime_filter_range2 = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.date,
+                    Operator = CompareTypeConst.fromTo,
+                    Key = "DOB",
+                    Start = "1993-08-22T08:30:42+00:00",
+                    End ="2006-02-27T02:12:58+00:00"
+                }
+            });
+
+            string datetime_filter_range_with_equal = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.date,
+                    Operator = CompareTypeConst.fromToWithEqual,
+                    Key = "DOB",
+                    Start = "1993-08-22T08:30:42+00:00",
+                    End ="2006-02-27T02:12:58+00:00"
+                }
+            });
+
+            #endregion
+
             IQueryable<Person> source = JsonSerializer.Deserialize<List<Person>>(dataSource).AsQueryable();
 
             Console.WriteLine("Start Testing!");
@@ -61,6 +241,8 @@ namespace linq_dynamic_filter_extension_testing
 
             Console.WriteLine("-------note that currently im going testing with 1 filter each-------");
 
+            BreakSomeLine("Testing text");
+
             foreach (var f in new List<string>(){
                 filter_equal, filter_not_equal,
                 filter_include, filter_not_include,
@@ -70,27 +252,31 @@ namespace linq_dynamic_filter_extension_testing
                 TestCase(ins, source, f);
             };
 
-            //var equal = ins.Filterable(source, filter_equal);
+            BreakSomeLine("Testing number");
 
-            //Console.WriteLine(String.Format(@"Found : {0} result", equal.Count(), equal.FirstOrDefault().Age));
-
-            //var inc = ins.Filterable(source, filter_include);
-
-            //Console.WriteLine(String.Format(@"Found : {0} result", inc.Count(), inc.FirstOrDefault().Age));
-
-            //var notInc = ins.Filterable(source, filter_not_include);
-
-            //Console.WriteLine(String.Format(@"Found : {0} result", inc.Count(), inc.FirstOrDefault().Age));
-
-            try
+            foreach (var f in new List<string>(){
+                number_filter_not_equal,
+                number_filter_range,
+                number_decimal_filter_equal,
+                number_decimal_filter_range,
+                number_decimal_filter_range2,
+                number_decimal_filter_range_with_equal
+            })
             {
-                ins.Filterable(source, filter_not_support_case);
-            }
-            catch(Exception ex)
-            {
-                
-            }
+                TestCase(ins, source, f);
+            };
 
+            BreakSomeLine("Testing datetime");
+
+            foreach (var f in new List<string>(){
+                datetime_filter_equal,
+                datetime_filter_range,
+                datetime_filter_range2,
+                datetime_filter_range_with_equal
+            })
+            {
+                TestCase(ins, source, f);
+            };
 
             Console.ReadKey();
         }
@@ -101,30 +287,45 @@ namespace linq_dynamic_filter_extension_testing
             {
                 var f = JsonSerializer.Deserialize<List<Filter>>(filters).AsQueryable();
 
-                Console.WriteLine(string.Format(@"Filter detail : Type = [{0}] Operator = [{1}]", f.FirstOrDefault().Type, f.FirstOrDefault().Operator));
+                Console.WriteLine(string.Format(@"Filter detail : Type = [{0}] Operator = [{1}]", f.FirstOrDefault().Type, String.Join(" and ", f.Select(s => s.Operator))));
 
                 var rs = ins.Filterable(source, filters);
+
                 Console.WriteLine(String.Format(@"Found : {0} result", rs.Count()));
+
             }catch(Exception ex)
             {
                 Console.WriteLine(String.Format(@"Error case : {0} with error : {1}", filters, ex.Message));
             }
         }
+
+        private static void BreakSomeLine(string broadcast_message = "") {
+            for(var i =0; i < 5; i++)
+            {
+                Console.WriteLine(" ");
+                
+            }
+            if (broadcast_message != null || broadcast_message != "")
+                Console.WriteLine(String.Format(@"----------{0}----------", broadcast_message));
+        }
     }
 
-    public class Filter : IHasKeyProperty, IHasOperatorProperty, IHasValueProperty, IHasTypeProperty
+    public class Filter : IHasKeyProperty, IHasOperatorProperty, IHasValueProperty, IHasTypeProperty, IHasStartProperty, IHasEndProperty
     {
         public String Type { get; set; }
         public string Key { get; set; }
         public String Operator { get; set; }
         public string Value { get; set; }
+        public string Start { get; set; }
+        public string End { get; set; }
     }
 
     public class Person
     {
         public string Name { get; set; }
         public int Age { get; set; }
-        public String DOB { get; set; }
-        public string Address { get; set; }
+        public Decimal Amount { get; set; }
+        public DateTime DOB { get; set; }
+
     }
 }

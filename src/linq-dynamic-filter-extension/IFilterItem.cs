@@ -28,16 +28,21 @@ namespace linq_dynamic_filter_extension
         public static string equal = "equal";
         public static string notEqual = "notEqual";
         public static string greaterThan = "greaterThan";
-        public static string greaterThanAndEqual = "greaterThanAndEqual";
+        public static string greaterThanOrEqual = "greaterThanOrEqual";
         public static string lessThan = "lessThan";
-        public static string lessThanAndEqual = "lessThanAndEqual";
+        public static string lessThanOrEqual = "lessThanOrEqual";
         public static string include = "include";
         public static string notInclude = "notInclude";
+
+        public static string fromTo = "fromTo";
+        public static string fromToWithEqual = "fromToWithEqual";
+
     }
 
     public static class FieldTypeConst
     {
-        public static string number = "number";
+        public static string integerNumber = "integer";
+        public static string decimalNumber = "decimal";
         public static string text = "text";
         public static string date = "date";
 
@@ -61,6 +66,22 @@ namespace linq_dynamic_filter_extension
     public interface IHasValueProperty
     { 
         public String Value { get; set; }
+    }
+
+    /// <summary>
+    /// Property is required to using range filter
+    /// </summary>
+    public interface IHasStartProperty
+    {
+        public String Start { get; set; }
+    }
+
+    /// <summary>
+    /// Property is required to using range filter
+    /// </summary>
+    public interface IHasEndProperty
+    {
+        public String End { get; set; }
     }
 
 }
