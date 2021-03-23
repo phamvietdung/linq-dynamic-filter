@@ -19,3 +19,7 @@ Thumbs.db
 obj/
 [Rr]elease*/
 _ReSharper*/
+
+/src/linq-dynamic-filter-extension-testing/obj
+/src/linq-dynamic-filter-extension-testing/bin
+/src/linq-dynamic-filter-extension-testing/.vs
