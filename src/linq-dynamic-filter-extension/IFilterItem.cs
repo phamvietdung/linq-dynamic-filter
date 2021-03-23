@@ -84,4 +84,11 @@ namespace linq_dynamic_filter_extension
         public String End { get; set; }
     }
 
+    /// <summary>
+    /// Property required when filter batch value, just support equal or include operator
+    /// </summary>
+    public interface IHasBatchValueProperty
+    {
+        public List<string> Values { get; set; }
+    }
 }

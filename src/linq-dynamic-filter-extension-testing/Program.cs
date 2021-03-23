@@ -231,6 +231,66 @@ namespace linq_dynamic_filter_extension_testing
 
             #endregion
 
+            string batch_value_filter = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.text,
+                    Operator = CompareTypeConst.equal,
+                    Key = "Name",
+                    Values = new List<string>()
+                    {
+                        "Ana Bowers",
+                        "Hull Forbes"
+                    }
+                }
+            });
+
+            string batch_value_not_equal_filter = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.text,
+                    Operator = CompareTypeConst.notEqual,
+                    Key = "Name",
+                    Values = new List<string>()
+                    {
+                        "Ana Bowers",
+                        "Hull Forbes"
+                    }
+                }
+            });
+
+            string batch_value_include_filter = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.text,
+                    Operator = CompareTypeConst.include,
+                    Key = "Name",
+                    Values = new List<string>()
+                    {
+                        "a",
+                        "Hull"
+                    }
+                }
+            });
+
+            string batch_value_not_include_filter = JsonSerializer.Serialize<List<Filter>>(new List<Filter>()
+            {
+                new Filter()
+                {
+                    Type = FieldTypeConst.text,
+                    Operator = CompareTypeConst.notInclude,
+                    Key = "Name",
+                    Values = new List<string>()
+                    {
+                       "Hull",
+                       "Forbes"
+                    }
+                }
+            });
+
             IQueryable<Person> source = JsonSerializer.Deserialize<List<Person>>(dataSource).AsQueryable();
 
             Console.WriteLine("Start Testing!");
@@ -278,6 +338,18 @@ namespace linq_dynamic_filter_extension_testing
                 TestCase(ins, source, f);
             };
 
+            BreakSomeLine("Batch compare");
+
+            foreach (var f in new List<string>(){
+               batch_value_filter,
+               batch_value_not_equal_filter,
+               batch_value_include_filter,
+               batch_value_not_include_filter
+            })
+            {
+                TestCase(ins, source, f);
+            };
+
             Console.ReadKey();
         }
 
@@ -310,7 +382,7 @@ namespace linq_dynamic_filter_extension_testing
         }
     }
 
-    public class Filter : IHasKeyProperty, IHasOperatorProperty, IHasValueProperty, IHasTypeProperty, IHasStartProperty, IHasEndProperty
+    public class Filter : IHasKeyProperty, IHasOperatorProperty, IHasValueProperty, IHasTypeProperty, IHasStartProperty, IHasEndProperty, IHasBatchValueProperty
     {
         public String Type { get; set; }
         public string Key { get; set; }
@@ -318,6 +390,8 @@ namespace linq_dynamic_filter_extension_testing
         public string Value { get; set; }
         public string Start { get; set; }
         public string End { get; set; }
+
+        public List<string> Values { get; set; }
     }
 
     public class Person

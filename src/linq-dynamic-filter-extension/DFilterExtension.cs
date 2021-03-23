@@ -7,31 +7,31 @@ using System.Text.Json;
 
 namespace linq_dynamic_filter_extension
 {
-    public class DFilterExtension<TEntity, TFilter> 
-        where TFilter : IHasKeyProperty, IHasOperatorProperty, IHasValueProperty, IHasTypeProperty, IHasStartProperty, IHasEndProperty
+    public class DFilterExtension<TEntity, TFilter>
+        where TFilter : IHasKeyProperty, IHasOperatorProperty, IHasValueProperty, IHasTypeProperty, IHasStartProperty, IHasEndProperty, IHasBatchValueProperty
     {
 
         public DFilterExtension() { }
 
         public List<String> CompareType = new List<String>() {
 
-            CompareTypeConst.equal, 
+            CompareTypeConst.equal,
             CompareTypeConst.notEqual,
 
-            CompareTypeConst.greaterThan, 
-            CompareTypeConst.greaterThanOrEqual, 
+            CompareTypeConst.greaterThan,
+            CompareTypeConst.greaterThanOrEqual,
 
-            CompareTypeConst.include, 
+            CompareTypeConst.include,
             CompareTypeConst.notInclude,
 
-            CompareTypeConst.lessThan, 
+            CompareTypeConst.lessThan,
             CompareTypeConst.lessThanOrEqual,
 
             CompareTypeConst.fromTo,
             CompareTypeConst.fromToWithEqual
         };
 
-        public List<String> FieldType = new List<String>() { 
+        public List<String> FieldType = new List<String>() {
             FieldTypeConst.text,
             FieldTypeConst.date,
             FieldTypeConst.integerNumber,
@@ -58,9 +58,21 @@ namespace linq_dynamic_filter_extension
 
         public Boolean ValidatedFilter(String filter)
         {
-            return ValidatedFilter(ConvertFromString(filter));
+
+            try
+            {
+                List<TFilter> filtered = ConvertFromString(filter);
+
+                return ValidatedFilter(filtered);
+            }
+            catch
+            {
+                return false;
+            }
+
+
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -87,7 +99,7 @@ namespace linq_dynamic_filter_extension
         public List<TFilter> ConvertFromString(String filter)
         {
             try { return JsonSerializer.Deserialize<List<TFilter>>(filter); }
-            catch(Exception ex) { throw new Exception(ex.Message); }
+            catch (Exception ex) { throw new Exception(ex.Message); }
         }
 
         public IQueryable<TEntity> Filterable(IQueryable<TEntity> source, String filter)
@@ -99,30 +111,12 @@ namespace linq_dynamic_filter_extension
 
         private IQueryable<TEntity> HandleText(IQueryable<TEntity> source, TFilter filter)
         {
-            if(filter.Operator == CompareTypeConst.equal || filter.Operator == CompareTypeConst.notEqual)
+            if (filter.Operator == CompareTypeConst.equal || filter.Operator == CompareTypeConst.notEqual)
             {
-                //ParameterExpression pe = Expression.Parameter(typeof(TEntity), "w");
-
-                //Expression left = Expression.Property(pe, CapitalizeFirstLetter(filter.Key));
-
-                //Expression right = Expression.Constant(filter.Value);
-
-                //Expression e1 = filter.Operator == CompareTypeConst.equal 
-                //    ? Expression.Equal(left, right) 
-                //    : Expression.NotEqual(left, right);
-
-                //MethodCallExpression whereCallExpression = Expression.Call(typeof(Queryable),
-                //    "Where",
-                //    new Type[] { source.ElementType },
-                //    source.Expression,
-                //    Expression.Lambda<Func<TEntity, bool>>(e1, new ParameterExpression[] { pe }));
-
-                //return source.Provider.CreateQuery<TEntity>(whereCallExpression);
-
                 return EqualAndNotEqualHandle(source, filter);
             }
 
-            if(filter.Operator == CompareTypeConst.include || filter.Operator == CompareTypeConst.notInclude)
+            if (filter.Operator == CompareTypeConst.include || filter.Operator == CompareTypeConst.notInclude)
             {
                 ParameterExpression pe = Expression.Parameter(typeof(TEntity), "i");
 
@@ -132,13 +126,42 @@ namespace linq_dynamic_filter_extension
 
                 MethodInfo method = typeof(string).GetMethod("Contains", new[] { typeof(string) });
 
-                var containsCallExpression = Expression.Call(left, method, right);
+                Expression e1 = Expression.Equal(left, right); // just fake expression
 
-                var positiveCall = Expression.Lambda<Func<TEntity, bool>>(containsCallExpression, pe);
+                if (filter.Values.Count() > 0)
+                {
+                    for (var i = 0; i < filter.Values.Count(); i++)
+                    {
+                        Expression this_const = Expression.Constant(filter.Values[i]);
 
-                var negativeCall = Expression.Lambda<Func<TEntity, bool>>(Expression.Not(containsCallExpression), pe);
+                        Expression this_expression = filter.Operator == CompareTypeConst.include
+                            ? Expression.Call(left, method, this_const)
+                            : Expression.Not(Expression.Call(left, method, this_const));
 
-                return source.Where(filter.Operator == CompareTypeConst.include ? positiveCall : negativeCall);
+
+                        e1 = i == 0 ? this_expression : Expression.Or(e1, this_expression);
+
+                    }
+
+                    MethodCallExpression whereCallExpression = Expression.Call(typeof(Queryable),
+                           "Where",
+                           new Type[] { source.ElementType },
+                           source.Expression,
+                           Expression.Lambda<Func<TEntity, bool>>(e1, new ParameterExpression[] { pe }));
+
+                    return source.Provider.CreateQuery<TEntity>(whereCallExpression);
+                }
+                else
+                {
+                    var containsCallExpression = Expression.Call(left, method, right);
+
+                    var positiveCall = Expression.Lambda<Func<TEntity, bool>>(containsCallExpression, pe);
+
+                    var negativeCall = Expression.Lambda<Func<TEntity, bool>>(Expression.Not(containsCallExpression), pe);
+
+                    return source.Where(filter.Operator == CompareTypeConst.include ? positiveCall : negativeCall);
+                }
+
 
                 //return source.Provider.CreateQuery<TEntity>(containsMethodExp);
             }
@@ -146,7 +169,7 @@ namespace linq_dynamic_filter_extension
             throw Notsupport(filter);
 
         }
-        
+
         private IQueryable<TEntity> HandleNumberOrDate(IQueryable<TEntity> source, TFilter filter)
         {
             if (filter.Operator == CompareTypeConst.equal || filter.Operator == CompareTypeConst.notEqual)
@@ -154,7 +177,7 @@ namespace linq_dynamic_filter_extension
                 return EqualAndNotEqualHandle(source, filter);
             }
 
-            if(filter.Operator == CompareTypeConst.greaterThan 
+            if (filter.Operator == CompareTypeConst.greaterThan
                 || filter.Operator == CompareTypeConst.greaterThanOrEqual
                 || filter.Operator == CompareTypeConst.lessThan
                 || filter.Operator == CompareTypeConst.lessThanOrEqual
@@ -188,7 +211,7 @@ namespace linq_dynamic_filter_extension
                 return source.Provider.CreateQuery<TEntity>(whereCallExpression);
             }
 
-            if(filter.Operator == CompareTypeConst.fromTo || filter.Operator == CompareTypeConst.fromToWithEqual)
+            if (filter.Operator == CompareTypeConst.fromTo || filter.Operator == CompareTypeConst.fromToWithEqual)
             {
 
                 ParameterExpression pe = Expression.Parameter(typeof(TEntity), "w");
@@ -253,8 +276,7 @@ namespace linq_dynamic_filter_extension
 
         #region Common 
 
-        private IQueryable<TEntity> EqualAndNotEqualHandle(IQueryable<TEntity> source, TFilter filter
-            )
+        private IQueryable<TEntity> EqualAndNotEqualHandle(IQueryable<TEntity> source, TFilter filter)
         {
             ParameterExpression pe = Expression.Parameter(typeof(TEntity), "w");
 
@@ -264,9 +286,30 @@ namespace linq_dynamic_filter_extension
 
             Expression right = Expression.Constant(Convert.ChangeType(filter.Value, compareType));
 
-            Expression e1 = filter.Operator == CompareTypeConst.equal
+            Expression e1 = Expression.Equal(left, right); // just fake expression
+
+            if (filter.Values.Count() > 0)
+            {
+                for (var i = 0; i < filter.Values.Count(); i++)
+                {
+                    Expression this_const = Expression.Constant(Convert.ChangeType(filter.Values[i], compareType));
+
+                    Expression this_expression = filter.Operator == CompareTypeConst.equal
+                        ? Expression.Equal(left, this_const)
+                        : Expression.NotEqual(left, this_const);
+
+
+                    e1 = i == 0 ? this_expression : Expression.Or(e1, this_expression);
+
+                }
+            }
+            else
+            {
+                e1 = filter.Operator == CompareTypeConst.equal
                 ? Expression.Equal(left, right)
                 : Expression.NotEqual(left, right);
+            }
+
 
             MethodCallExpression whereCallExpression = Expression.Call(typeof(Queryable),
                 "Where",
@@ -275,6 +318,8 @@ namespace linq_dynamic_filter_extension
                 Expression.Lambda<Func<TEntity, bool>>(e1, new ParameterExpression[] { pe }));
 
             return source.Provider.CreateQuery<TEntity>(whereCallExpression);
+
+
         }
 
         private Exception Notsupport(TFilter filter)
@@ -323,13 +368,13 @@ namespace linq_dynamic_filter_extension
                 {
                     var current_filter = filter[i];
 
-                    if(current_filter.Type == FieldTypeConst.text)
+                    if (current_filter.Type == FieldTypeConst.text)
                         source = HandleText(source, current_filter);
 
                     if (current_filter.Type == FieldTypeConst.integerNumber || current_filter.Type == FieldTypeConst.decimalNumber)
                         source = HandleNumberOrDate(source, current_filter);
 
-                    if(current_filter.Type == FieldTypeConst.date)
+                    if (current_filter.Type == FieldTypeConst.date)
                         source = HandleNumberOrDate(source, current_filter);
 
                 }
@@ -338,6 +383,6 @@ namespace linq_dynamic_filter_extension
             return source;
         }
 
-       
+
     }
 }
